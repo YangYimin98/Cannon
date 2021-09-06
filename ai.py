@@ -85,10 +85,10 @@ class AI:
         #     if capture_white_town > 0:
         #         evaluation = -100
 
-        # if black_to_move:
-        #     evaluation += 4 * board.black_town + 4 * board.black_pieces - board.white_town - board.white_pieces
-        # else:
-        #     evaluation += 4 * board.white_town + 4 * board.white_pieces - board.black_town - board.black_pieces
+        if black_to_move:
+            evaluation += 4 * board.black_town + 4 * board.black_pieces - board.white_town - board.white_pieces
+        else:
+            evaluation += 4 * board.white_town + 4 * board.white_pieces - board.black_town - board.black_pieces
 
         print('Evaluation score for this move is {0}'.format(evaluation))
 
@@ -154,14 +154,7 @@ class AI:
         self.store(hash, cache)
         return best_value, best_move
 
-    def minimax_function_with_alpha_beta_and_ids(
-            self,
-            max_depth,
-            board,
-            game_continue,
-            gold_move,
-            alpha,
-            beta):
+    def minimax_function_with_alpha_beta_and_ids(self, max_depth, board, game_continue, gold_move, alpha, beta):
         start_time = time.time()
         hash = self.zobrist_hash(board)
         alpha_initial, beta_initial = alpha, beta

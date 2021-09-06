@@ -83,7 +83,6 @@ class BoardProperties:
                             self.piece_size,
                             self.piece_size,
                             self.piece_size))
-    ''' draw the animation of where the piece can move towards'''
 
     def draw_animation(self, view, gb, moves, click_chosen):
         if click_chosen != ():
@@ -121,8 +120,6 @@ class BoardProperties:
                              move.end_row +
                              self.piece_size))
 
-    ''' draw the notations'''
-
     def draw_notations(self, view, text):
         font = p.font.SysFont('Calibri', 40, True, False)
         notation = font.render(text, 0, p.Color(221, 190, 107))
@@ -142,8 +139,6 @@ class BoardProperties:
         view.blit(notation, notation_location)
         notation = font.render(text, 0, p.Color('black'))
         view.blit(notation, notation_location.move(2, 2))
-
-    '''draw the start interface'''
 
     def mode_selection(self, view):
         background_image = p.image.load('images/BG1.jpg')
@@ -178,12 +173,10 @@ class BoardProperties:
         view.blit(text, text_rect)
         return pos1, pos2, pos3
 
-    '''draw the fight process'''
-
     def draw_process(self, view, turn, process, time):
         font = p.font.SysFont("Calibri", 15)
         turn = 'Dark team: ' if turn else 'Light team: '
-        text = font.render(str(turn), True, p.Color(0, 0, 255))
+        text = font.render(str(turn), True, p.Color(221, 190, 107))
         text_rect = text.get_rect()
         text_rect.center = (
             self.width + self.piece_size + 49,
@@ -193,7 +186,7 @@ class BoardProperties:
             "Time:" +
             str(time) + 's',
             True,
-            p.Color(0, 0, 255))
+            p.Color(255, 0, 0))
         text_rect = text.get_rect()
         text_rect.center = (
             self.width +
@@ -209,15 +202,13 @@ class BoardProperties:
         if len(process) != 0:
             for i in range(len(process)):
                 text = font.render(
-                    process[len(process) - i - 1], True, p.Color(0, 0, 255), p.Color(221, 190, 107))
+                    process[len(process) - i - 1], True, p.Color(255, 0, 0), p.Color(221, 190, 107))
                 text_rect = text.get_rect()
                 text_rect.center = (
                     self.width + self.piece_size + self.inf_width / 2, 512 - (i + 1) * 30)
                 view.blit(text, text_rect)
                 if i > 10:
                     break
-
-    # draw the current state of the board
 
     def draw_game(self, view, gb, moves, captures, retreats, cannons, slides, click_chosen, time):
         self.draw_background(view)

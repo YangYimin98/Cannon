@@ -44,6 +44,7 @@ class GameBoard:
                 c = int(input('The col of DARK town, c_black: '))
             else:
                 c = 4
+
             if c != 0 and c != 9:
                 self.board[r][c] = 'gK'
             else:

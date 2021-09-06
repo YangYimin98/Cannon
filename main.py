@@ -18,12 +18,11 @@ def main():
     track = True
     click_chosen = ()
     click_chosen_set = []
-    moves, capture, retreats, cannons, slides = gb.valid_moves()
     start_play = False
     screen.fill(p.Color(221, 190, 107))
     mode_selection = True
     clock = p.time.Clock()
-    max_depth = 2
+    max_depth = 3
     ids = False
     AI = ai.AI(max_depth, ids)
     AI.choose_team = 0
@@ -39,6 +38,8 @@ def main():
                 if pos[0].collidepoint(location):
                     AI.choose_team = 0
                     """set the town's position, move to mode selection pat later"""
+                    gb.random_white_town_loc = False
+                    gb.random_black_town_loc = False
                     gb.town_selection()
                     gb.black_to_move = not gb.black_to_move
                     gb.town_selection()
@@ -58,11 +59,11 @@ def main():
                     gb.town_selection()
                     gb.black_to_move = not gb.black_to_move
                 mode_selection = False
-        screen.fill(p.Color(204, 153, 0))
+        screen.fill(p.Color(221, 190, 107))
         bp.mode_selection(screen)
         clock.tick(bp.max_animation)
         p.display.flip()
-
+    moves, capture, retreats, cannons, slides = gb.valid_moves()
     while game_start:
         time_consumed = AI.time_consumed
         bp.draw_game(screen, gb, moves, capture, retreats, cannons, slides, click_chosen, time_consumed)
