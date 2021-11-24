@@ -4,7 +4,7 @@ import random
 
 
 class AI:
-    def __init__(self, max_depth, IDS):
+    def __init__(self, IDS, move_ordering):
         self.time_consumed = 0
         self.TT = dict({})
         self.table = [[[random.randint(1, 2 ** 64 - 1)
@@ -12,11 +12,16 @@ class AI:
                        for j in range(10)]
                       for k in range(10)]
         self.terminal_nodes = 0
-        self.max_depth = max_depth
+        self.max_depth = 3
         self.ids_timer = 5
         self.IDS = IDS
+        self.flag = 1
+        self.move_ordering = move_ordering
 
-    def evaluation_function(self, board, black_to_move):
+    def evaluation_function(self, board, black_to_move, flag):
+
+        if flag == 1:
+            black_to_move = not black_to_move
         evaluation = 0
         """get the location of black town and white town"""
         row_black_town_location, col_black_town_location = board.black_town_loc_row, board.black_town_loc_col
@@ -44,11 +49,11 @@ class AI:
                         if board.board[r - 1][c] == 'sK' or board.board[r - 1][c - 1] == 'sK' or board.board[r - 1][
                             c + 1] == 'sK' \
                                 or board.board[r][c - 1] == 'sK' or board.board[r][c + 1] == 'sK':
-                            evaluation = 200
+                            evaluation += 200
                         elif board.board[r - 1][c] == 'sp' or board.board[r - 1][c - 1] == 'sp' or board.board[r - 1][
                             c + 1] == 'sp' \
                                 or board.board[r][c - 1] == 'sp' or board.board[r][c + 1] == 'sp':
-                            evaluation = 50
+                            evaluation += 50
         else:
             for r in range(len(board.board)):
                 for c in range(len(board.board[0])):
@@ -57,13 +62,58 @@ class AI:
                         if board.board[r + 1][c] == 'gK' or board.board[r + 1][c - 1] == 'gK' or board.board[r + 1][
                             c + 1] == 'gK' \
                                 or board.board[r][c - 1] == 'gK' or board.board[r][c + 1] == 'gK':
-                            evaluation = 200
+                            evaluation += 200
                         elif board.board[r + 1][c] == 'gp' or board.board[r + 1][c - 1] == 'gp' or board.board[r + 1][
                             c + 1] == 'gp' \
                                 or board.board[r][c - 1] == 'gp' or board.board[r][c + 1] == 'gp':
-                            evaluation = 50
+                            evaluation += 50
 
         capture_black_town, capture_white_town = 0, 0
+
+        """Dark Cannon shot the light town"""
+        for r in range(len(board.board)):
+            for c in range(len(board.board[0])):
+                piece, town = 'gp', 'gK'
+                if r - 1 >= 0 and r + 1 <= 9:  # vertical
+                    if board.board[r - 1][c] == piece and board.board[r + 1][c] == piece and board.board[r][c] == piece:
+                        if r - 3 >= 0:
+                            if board.board[r - 2][c] == '--':
+                                if board.board[r - 3][c] != '--' and board.board[r - 3][c] != piece and \
+                                        board.board[r - 3][c] != town:
+                                    capture_white_town += 1
+                                if r - 4 >= 0:
+                                    if board.board[r - 3][c] == '--':
+                                        if board.board[r - 4][c] != '--' and board.board[r - 4][c] != piece and \
+                                                board.board[r - 4][c] != town:
+                                            capture_white_town += 1
+        # Cannon shot the town
+        for r in range(len(board.board)):
+            for c in range(len(board.board[0])):
+                piece, town = 'gp', 'sK'
+                if r - 1 >= 0 and r + 1 <= 9:  # vertical
+                    if board.board[r - 1][c] == piece and board.board[r + 1][c] == piece and board.board[r][c] == piece:
+                        if r - 3 >= 0:
+                            if board.board[r - 2][c] == '--':
+                                if board.board[r - 3][c] == town:
+                                    capture_white_town += 1
+                                if r - 4 >= 0:
+                                    if board.board[r - 3][c] == '--':
+                                        if board.board[r - 4][c] == town:
+                                            capture_white_town += 1
+        for r in range(len(board.board)):
+            for c in range(len(board.board[0])):
+                piece, town = 'sp', 'gK'
+                if r - 1 >= 0 and r + 1 <= 9:  # vertical
+                    if board.board[r - 1][c] == piece and board.board[r + 1][c] == piece and board.board[r][c] == piece:
+                        if r + 3 <= 9:
+                            if board.board[r + 2][c] == '--':
+                                if board.board[r + 3][c] == town:
+                                    capture_black_town += 1
+                                if r + 4 <= 9:
+                                    if board.board[r + 3][c] == '--':
+                                        if board.board[r + 4][c] == town:
+                                            capture_black_town += 1
+
         for i in threaten_black_town_piece_position:
             """because the town's position is stable, so no need to judge if it is in the board"""
             if board.board[i[0]][i[1]] == 'sp':
@@ -71,26 +121,24 @@ class AI:
         for j in threaten_white_town_piece_position:
             if board.board[j[0]][j[1]] == 'gp':
                 capture_white_town += 1
-        if capture_white_town > 0 or capture_black_town > 0:
-            evaluation = -1000
-        # if black_to_move:
-        #     if capture_white_town > 0:
-        #         evaluation = 100
-        #     if capture_black_town > 0:
-        #         evaluation = -100
-        # else:
-        #     black_to_move = not black_to_move
-        #     if capture_black_town > 0:
-        #         evaluation = 100
-        #     if capture_white_town > 0:
-        #         evaluation = -100
+
+        if self.flag == 1:
+            if capture_white_town > 0 or capture_black_town > 0:
+                evaluation += -1000
+            else:
+                evaluation += 1000
+        elif self.flag == 0:
+            if capture_white_town > 0 or capture_black_town > 0:
+                evaluation += -1000
+            else:
+                evaluation += -1000
 
         if black_to_move:
             evaluation += 4 * board.black_town + 4 * board.black_pieces - board.white_town - board.white_pieces
         else:
             evaluation += 4 * board.white_town + 4 * board.white_pieces - board.black_town - board.black_pieces
 
-        print('Evaluation score for this move is {0}'.format(evaluation))
+        # print('Evaluation score for this move is {0}'.format(evaluation))
 
         return evaluation
 
@@ -113,7 +161,7 @@ class AI:
                 if alpha >= beta:
                     return result[1], result[2]
         if max_depth == 0 or not game_continue:
-            return self.evaluation_function(board, board.black_to_move), ""
+            return self.evaluation_function(board, board.black_to_move, flag=self.flag), ""
         for move in captures:
             moves.append(move)
         for move in retreats:
@@ -122,6 +170,20 @@ class AI:
             moves.append(move)
         for move in slides:
             moves.append(move)
+
+        # Move Ordering
+        if self.move_ordering:
+            scores = []
+            for action in moves:
+                order_state = update_board(action, board)
+                score = self.evaluation_function(order_state, order_state.black_to_move, flag=self.flag)
+                scores.append(score)
+            sortedMoves = list(zip(scores, moves))
+            if black_to_move:
+                sortedMoves.sort(key=lambda mv: mv[0], reverse=True)
+            else:
+                sortedMoves.sort(key=lambda mv: mv[0], reverse=False)
+            moves = [move for _, move in sortedMoves]
 
         for move in moves:
             new_board = update_board(move, board)
@@ -154,7 +216,8 @@ class AI:
         self.store(hash, cache)
         return best_value, best_move
 
-    def minimax_function_with_alpha_beta_and_ids(self, max_depth, board, game_continue, gold_move, alpha, beta):
+    def minimax_function_with_alpha_beta_and_ids(self, max_depth, board, game_continue, black_to_move, alpha, beta):
+
         start_time = time.time()
         hash = self.zobrist_hash(board)
         alpha_initial, beta_initial = alpha, beta
@@ -171,27 +234,47 @@ class AI:
                 if alpha >= beta:
                     return result[1], result[2]
         if max_depth == 0 or not game_continue or self.ids_timer < 0:
-            return self.evaluation_function(board, board.gold_move), ""
+            return self.evaluation_function(board, board.black_to_move, flag=self.flag), ""
 
-        moves, captures = board.valid_moves()
+        moves, captures, retreats, cannons, slides = board.valid_moves()
         for move in captures:
             moves.append(move)
+        for move in retreats:
+            moves.append(move)
+        for move in cannons:
+            moves.append(move)
+        for move in slides:
+            moves.append(move)
 
-        best_value = float('-inf') if gold_move else float('inf')
+        # Move Ordering
+        if self.move_ordering:
+            scores = []
+            for action in moves:
+                order_state = update_board(action, board)
+                score = self.evaluation_function(order_state, order_state.black_to_move, flag=self.flag)
+                scores.append(score)
+            sortedMoves = list(zip(scores, moves))
+            if black_to_move:
+                sortedMoves.sort(key=lambda mv: mv[0], reverse=True)
+            else:
+                sortedMoves.sort(key=lambda mv: mv[0], reverse=False)
+            moves = [move for _, move in sortedMoves]
+
+        best_value = float('-inf') if black_to_move else float('inf')
         best_move = ""
 
         for move in moves:
             new_board = update_board(move, board)
             tree_child, action_child = self.minimax_function_with_alpha_beta_and_ids(
-                max_depth - 1, new_board, new_board.game_continue, new_board.gold_move, alpha, beta)
+                max_depth - 1, new_board, new_board.game_continue, new_board.black_to_move, alpha, beta)
 
-            if gold_move and best_value < tree_child:
+            if black_to_move and best_value < tree_child:
                 best_value = tree_child
                 best_move = move
                 alpha = max(alpha, best_value)
                 if beta <= alpha:
                     break
-            elif (not gold_move) and best_value > tree_child:
+            elif (not black_to_move) and best_value > tree_child:
                 best_value = tree_child
                 best_move = move
                 beta = min(beta, best_value)
@@ -213,7 +296,7 @@ class AI:
         return best_value, best_move
 
     def ids(self, board):
-        best_value = float("-inf") if board.gold_move else float("inf")
+        best_value = float("-inf") if board.black_to_move else float("inf")
         best_move = ""
         total_times = 20
         current_depth = 1
@@ -221,11 +304,11 @@ class AI:
             start_time = time.time()
             self.ids_timer = 10
             score, move = self.minimax_function_with_alpha_beta_and_ids(
-                current_depth, board, board.game_continue, board.gold_move, float('-inf'), float('inf'))
+                current_depth, board, board.game_continue, board.black_to_move, float('-inf'), float('inf'))
             end_time = time.time()
             time_spent = end_time - start_time
             total_times -= time_spent
-            if board.gold_move:
+            if board.black_to_move:
                 if score > best_value:
                     best_value = score
                     best_move = move
@@ -271,8 +354,9 @@ class AI:
             score, move = self.ids(new_board)
         else:
             score, move = self.minimax_function_with_alpha_beta(
-            self.max_depth, new_board, new_board.game_continue, new_board.black_to_move, float('-inf'), float('inf'))
-        print('------------The node has been visited is{0}------------'.format(self.terminal_nodes))
+                self.max_depth, new_board, new_board.game_continue, new_board.black_to_move, float('-inf'),
+                float('inf'))
+        print('------------The node has been visited is {0}-------------'.format(self.terminal_nodes))
         time_consumed = time.time() - start_time
         self.time_consumed += time_consumed
         self.time_consumed = round(self.time_consumed, 2)
@@ -285,6 +369,9 @@ class AI:
                 board.execute_move(move, flag=False)
                 # print(board.board)
         return move
+
+    def killer_move(self):
+        pass
 
 
 def piece_index(piece):
@@ -299,7 +386,6 @@ def piece_index(piece):
 
 
 def update_board(move, board):
-
     moves, captures, retreats, cannons, slides = board.valid_moves()
     if move in moves or move in captures or move in retreats or move in slides:
         next_state = deepcopy(board)

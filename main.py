@@ -5,7 +5,7 @@ import sys
 import ai
 
 
-def main():
+def run():
     p.init()
     bp = BoardProperties()
     p.display.set_caption('Cannon')
@@ -22,9 +22,13 @@ def main():
     screen.fill(p.Color(221, 190, 107))
     mode_selection = True
     clock = p.time.Clock()
-    max_depth = 3
     ids = False
-    AI = ai.AI(max_depth, ids)
+    move_ordering = False
+    AI = ai.AI(ids, move_ordering)
+    if gb.control:
+        AI.max_depth = 3
+    else:
+        AI.max_depth = 3
     AI.choose_team = 0
 
     while mode_selection:
@@ -37,7 +41,6 @@ def main():
                 location = p.mouse.get_pos()
                 if pos[0].collidepoint(location):
                     AI.choose_team = 0
-                    """set the town's position, move to mode selection pat later"""
                     gb.random_white_town_loc = False
                     gb.random_black_town_loc = False
                     gb.town_selection()
@@ -52,8 +55,8 @@ def main():
                     gb.town_selection()
                     gb.black_to_move = not gb.black_to_move
                 elif pos[2].collidepoint(location):
-                    gb.random_black_town_loc = False
                     AI.choose_team = 2
+                    gb.random_black_town_loc = False
                     gb.town_selection()
                     gb.black_to_move = not gb.black_to_move
                     gb.town_selection()
@@ -70,6 +73,7 @@ def main():
         if gb.game_continue:
             if gb.turn_team != 0:
                 for e in p.event.get():
+
                     if len(moves) == 0 and len(capture) == 0 and len(slides) == 0 and len(cannons) == 0 and len(
                             retreats) == 0:
                         print("STALEMATE!")
@@ -77,17 +81,18 @@ def main():
                         game_start = False
 
                     elif gb.black_to_move and AI.choose_team == 1 and track:
+                        bp.draw_game(screen, gb, moves, capture, retreats, cannons, slides, click_chosen, time_consumed)
+
+                        AI.flag = 1
                         track = False
                         AI.ai_move(gb)
-                        bp.draw_game(screen, gb, moves, capture, retreats, cannons, slides, click_chosen, time_consumed)
                         start_play = True
                         click_chosen = ()
                         click_chosen_set = []
 
                     elif not gb.black_to_move and AI.choose_team == 2 and track:
-                        if len(moves) == 0 and len(capture) == 0 and len(slides) == 0 and len(cannons) == 0 and len(
-                                retreats) == 0:
-                            print("STALEMATE!")
+                        AI.max_depth = 2
+                        AI.flag = 0
                         track = False
                         AI.ai_move(gb)
                         bp.draw_game(screen, gb, moves, capture, retreats, cannons, slides, click_chosen, time_consumed)
@@ -113,7 +118,8 @@ def main():
                         if len(click_chosen_set) == 2:
                             move = MyMoveRecording(
                                 click_chosen_set[0], click_chosen_set[1], gb.board)
-                            if len(moves) == 0 and len(capture) == 0 and len(slides) == 0 and len(cannons) == 0 and len(retreats) == 0:
+                            if len(moves) == 0 and len(capture) == 0 and len(slides) == 0 and len(cannons) == 0 \
+                                    and len(retreats) == 0:
                                 print("STALEMATE!")
                             if move in moves:
                                 # gb.board[move.start_row][move.start_col] = '--'
@@ -183,4 +189,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    run()
+

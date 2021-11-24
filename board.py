@@ -16,7 +16,7 @@ class GameBoard:
             ['--', '--', '--', '--', '--', '--', '--', '--', '--', '--'],
         ]
         self.index_to_col = (
-            ["A", "B", "C", "D", "E", "F", "F", "H", "I", "J"])
+            ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"])
         self.index_to_row = (
             ["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"])
         self.black_to_move = True
@@ -35,6 +35,7 @@ class GameBoard:
         self.random_white_town_loc = True
         self.black_town_loc_row, self.black_town_loc_col = 0, 0
         self.white_town_loc_row, self.white_town_loc_col = 0, 0
+        self.control = True
 
     def town_selection(self):
         """dont forget to throw exception"""
@@ -44,24 +45,28 @@ class GameBoard:
                 c = int(input('The col of DARK town, c_black: '))
             else:
                 c = 4
-
             if c != 0 and c != 9:
                 self.board[r][c] = 'gK'
             else:
-                c = int(input('Corner is not allowed, please reset the value: '))
+                while c == 0 or c == 9:
+                    c = int(input('Corner is not allowed, please reset the value: '))
+                    continue
                 self.board[r][c] = 'gK'
             self.black_town_loc_row, self.black_town_loc_col = r, c
             # print(self.black_town_loc_row, self.black_town_loc_col)
         else:
             r = 0
             if not self.random_white_town_loc:
+
                 c = int(input('The col of LIGHT town, c_white: '))
             else:
                 c = 5
             if c != 0 and c != 9:
                 self.board[r][c] = 'sK'
             else:
-                c = int(input('Corner is not allowed, please reset the value: '))
+                while c == 0 or c == 9:
+                    c = int(input('Corner is not allowed, please reset the value: '))
+                    continue
                 self.board[r][c] = 'sK'
             self.white_town_loc_row, self.white_town_loc_col = r, c
             # print(self.white_town_loc_row, self.white_town_loc_col)
@@ -84,7 +89,7 @@ class GameBoard:
 
         return moves, capture, retreats, cannons, slides
 
-    def rules_for_pieces_moves(self, r, c, moves):  # remember  to break
+    def rules_for_pieces_moves(self, r, c, moves):  # remember to break
         pre = len(moves)
         if self.black_to_move:
             if r - 1 >= 0:
@@ -171,113 +176,85 @@ class GameBoard:
                             (r, c), (r, c - 1), self.board
                         ))
 
+    def black_retreat(self, r, c, retreats):
+        if r + 2 <= 9:
+            if self.board[r + 1][c] == '--':
+                if self.board[r + 2][c] == '--':
+                    retreats.append(move_recordings.MyMoveRecording(
+                        (r, c), (r + 2, c), self.board))
+            if c + 2 <= 9:
+                if self.board[r + 1][c + 1] == '--':
+                    if self.board[r + 2][c + 2] == '--':
+                        retreats.append(move_recordings.MyMoveRecording(
+                            (r, c), (r + 2, c + 2), self.board))
+            if c - 2 >= 0:
+                if self.board[r + 1][c - 1] == '--':
+                    if self.board[r + 2][c - 2] == '--':
+                        retreats.append(move_recordings.MyMoveRecording(
+                            (r, c), (r + 2, c - 2), self.board))
+
+    def white_retreat(self, r, c, retreats):
+        if 0 <= r - 2:
+            if self.board[r - 1][c] == '--':
+                if self.board[r - 2][c] == '--':
+                    retreats.append(move_recordings.MyMoveRecording(
+                        (r, c), (r - 2, c), self.board))
+            if c + 2 <= 9:
+                if self.board[r - 1][c + 1] == '--':
+                    if self.board[r - 2][c + 2] == '--':
+                        retreats.append(move_recordings.MyMoveRecording(
+                            (r, c), (r - 2, c + 2), self.board))
+            if c - 2 >= 0:
+                if self.board[r - 1][c - 1] == '--':
+                    if self.board[r - 2][c - 2] == '--':
+                        retreats.append(move_recordings.MyMoveRecording(
+                            (r, c), (r - 2, c - 2), self.board))
+
     def rules_for_pieces_retreat(self, r, c, retreats):
         """pre-requisite for retreat, threaten by opponent"""
         if self.black_to_move:
             if r - 1 >= 0:
                 if self.board[r - 1][c] == 'sp':
-                    if r + 2 <= 9:
-                        if self.board[r + 1][c] == '--':
-                            if self.board[r + 2][c] == '--':
-                                retreats.append(move_recordings.MyMoveRecording(
-                                    (r, c), (r + 2, c), self.board))
-                        if c + 2 <= 9:
-                            if self.board[r + 1][c + 1] == '--':
-                                if self.board[r + 2][c + 2] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r + 2, c + 2), self.board))
-                        if c - 2 >= 0:
-                            if self.board[r + 1][c - 1] == '--':
-                                if self.board[r + 2][c - 2] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r + 2, c - 2), self.board))
+                    self.black_retreat(r, c, retreats)
                 if c - 1 >= 0:
                     if self.board[r - 1][c - 1] == 'sp' or self.board[r][c - 1] == 'sp':
-                        if r + 2 <= 9:
-                            if self.board[r + 1][c] == '--':
-                                if self.board[r + 2][c] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r + 2, c), self.board))
-                            if c + 2 <= 9:
-                                if self.board[r + 1][c + 1] == '--':
-                                    if self.board[r + 2][c + 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r + 2, c + 2), self.board))
-                            if c - 2 >= 0:
-                                if self.board[r + 1][c - 1] == '--':
-                                    if self.board[r + 2][c - 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r + 2, c - 2), self.board))
+                        self.black_retreat(r, c, retreats)
                 if c + 1 <= 9:
                     if self.board[r - 1][c + 1] == 'sp' or self.board[r][c + 1] == 'sp':
-                        if r + 2 <= 9:
-                            if self.board[r + 1][c] == '--':
-                                if self.board[r + 2][c] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r + 2, c), self.board))
-                            if c + 2 <= 9:
-                                if self.board[r + 1][c + 1] == '--':
-                                    if self.board[r + 2][c + 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r + 2, c + 2), self.board))
-                            if c - 2 >= 0:
-                                if self.board[r + 1][c - 1] == '--':
-                                    if self.board[r + 2][c - 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r + 2, c - 2), self.board))
+                        self.black_retreat(r, c, retreats)
+
+            if r + 1 <= 9:
+                if self.board[r + 1][c] == 'sp':
+                    self.black_retreat(r, c, retreats)
+
+                if c - 1 >= 0:
+                    if self.board[r + 1][c - 1] == 'sp':
+                        self.black_retreat(r, c, retreats)
+
+                if c + 1 <= 9:
+                    if self.board[r + 1][c + 1] == 'sp':
+                        self.black_retreat(r, c, retreats)
 
         else:
             if r + 1 <= 9:
                 if self.board[r + 1][c] == 'gp':
-                    if 0 <= r - 2:
-                        if self.board[r - 1][c] == '--':
-                            if self.board[r - 2][c] == '--':
-                                retreats.append(move_recordings.MyMoveRecording(
-                                    (r, c), (r - 2, c), self.board))
-                        if c + 2 <= 9:
-                            if self.board[r - 1][c + 1] == '--':
-                                if self.board[r - 2][c + 2] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r - 2, c + 2), self.board))
-                        if c - 2 >= 0:
-                            if self.board[r - 1][c - 1] == '--':
-                                if self.board[r - 2][c - 2] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r - 2, c - 2), self.board))
+                    self.white_retreat(r, c, retreats)
                 if c - 1 >= 0:
-                    if self.board[r + 1][c - 1] == 'gp' or self.board[r][c - 1] == 'sp':
-                        if 0 <= r - 2:
-                            if self.board[r - 1][c] == '--':
-                                if self.board[r - 2][c] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r - 2, c), self.board))
-                            if c + 2 <= 9:
-                                if self.board[r - 1][c + 1] == '--':
-                                    if self.board[r - 2][c + 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r - 2, c + 2), self.board))
-                            if c - 2 >= 0:
-                                if self.board[r - 1][c - 1] == '--':
-                                    if self.board[r - 2][c - 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r - 2, c - 2), self.board))
+                    if self.board[r + 1][c - 1] == 'gp' or self.board[r][c - 1] == 'gp':
+                        self.white_retreat(r, c, retreats)
                 if c + 1 <= 9:
                     if self.board[r + 1][c + 1] == 'gp' or self.board[r][c + 1] == 'gp':
-                        if 0 <= r - 2:
-                            if self.board[r - 1][c] == '--':
-                                if self.board[r - 2][c] == '--':
-                                    retreats.append(move_recordings.MyMoveRecording(
-                                        (r, c), (r - 2, c), self.board))
-                            if c + 2 <= 9:
-                                if self.board[r - 1][c + 1] == '--':
-                                    if self.board[r - 2][c + 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r - 2, c + 2), self.board))
-                            if c - 2 >= 0:
-                                if self.board[r - 1][c - 1] == '--':
-                                    if self.board[r - 2][c - 2] == '--':
-                                        retreats.append(move_recordings.MyMoveRecording(
-                                            (r, c), (r - 2, c - 2), self.board))
+                        self.white_retreat(r, c, retreats)
+
+            if r - 1 >= 0:
+                if self.board[r - 1][c] == 'gp':
+                    self.white_retreat(r, c, retreats)
+                if c - 1 >= 0:
+                    if self.board[r - 1][c - 1] == 'gp':
+                        self.white_retreat(r, c, retreats)
+                if c + 1 <= 9:
+                    if self.board[r - 1][c + 1] == 'gp':
+                        self.white_retreat(r, c, retreats)
 
     def rules_for_cannon_slides(self, r, c, slides):
         piece, town = self.move_team()
@@ -458,7 +435,7 @@ class GameBoard:
             if self.running:
                 if moves.piece_capture == '--':
                     self.process.append(
-                        turn + 'made a normal move:   ' + moves.piece_move + ' ' + moves.get_notations())
+                        turn + ' made a normal move:   ' + moves.piece_move + ' ' + moves.get_notations())
                 elif moves.piece_capture == 'gK':
                     self.process.append(
                         turn +
@@ -544,7 +521,6 @@ class GameBoard:
                         " " +
                         moves.get_notations())
             self.calculate_pieces(moves)
-
             if self.white_pieces == 0:
                 self.game_continue = False
                 self.result = 'Dark Team wins the game!'

@@ -15,7 +15,7 @@ class BoardProperties:
         images = ['sp', 'gp', 'gK', 'sK']
         for i in images:
             self.IMAGES[i] = p.transform.scale(p.image.load(
-                'images/' + i + '.jpeg'), (self.piece_size, self.piece_size))
+                'images/' + i + '.jpg'), (self.piece_size, self.piece_size))
 
     def draw_background(self, view):
         colors = p.Color((221, 190, 107))
@@ -84,6 +84,48 @@ class BoardProperties:
                             self.piece_size,
                             self.piece_size))
 
+    def draw_line(self, view):
+        GRID_WIDTH = self.width + self.piece_size
+        WIDTH = self.width
+        HEIGHT = self.height
+        rect_lines = [
+            ((GRID_WIDTH, GRID_WIDTH), (GRID_WIDTH, HEIGHT - GRID_WIDTH)),
+            ((GRID_WIDTH, GRID_WIDTH), (WIDTH - GRID_WIDTH, GRID_WIDTH)),
+            ((GRID_WIDTH, HEIGHT - GRID_WIDTH),
+             (WIDTH - GRID_WIDTH, HEIGHT - GRID_WIDTH)),
+            ((WIDTH - GRID_WIDTH, GRID_WIDTH),
+             (WIDTH - GRID_WIDTH, HEIGHT - GRID_WIDTH)),
+        ]
+        for line in rect_lines:
+            p.draw.line(view, 'black', line[0], line[1], 2)
+        # GRID_WIDTH = self.width // 10
+        #
+        # for i in range(10):
+        #
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH * (2 + i) - self.piece_size, GRID_WIDTH + self.piece_size),
+        #                      (GRID_WIDTH * (2 + i) - self.piece_size, HEIGHT + self.piece_size))
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH * (2 + i) - self.piece_size, GRID_WIDTH),
+        #                      (GRID_WIDTH * (2 + i) - self.piece_size, HEIGHT))
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH * (2 + i), GRID_WIDTH + self.piece_size),
+        #                      (GRID_WIDTH * (2 + i), HEIGHT + self.piece_size))
+        #
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH, GRID_WIDTH * (2 + i)),
+        #                      (HEIGHT - self.piece_size, GRID_WIDTH * (2 + i)))
+        #
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH, GRID_WIDTH * (2 + i) + self.piece_size),
+        #                      (HEIGHT - self.piece_size, GRID_WIDTH * (2 + i) + self.piece_size))
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH + self.piece_size, GRID_WIDTH * (2 + i) - self.piece_size),
+        #                      (HEIGHT + self.piece_size, GRID_WIDTH * (2 + i) - self.piece_size))
+        #     p.draw.line(view, 'black',
+        #                      (GRID_WIDTH, GRID_WIDTH * (2 + i) - self.piece_size),
+        #                      (HEIGHT, GRID_WIDTH * (2 + i) - self.piece_size))
+
     def draw_animation(self, view, gb, moves, click_chosen):
         if click_chosen != ():
             row, col = click_chosen
@@ -108,7 +150,6 @@ class BoardProperties:
                 else:
                     s.fill(p.Color(255, 0, 0))
 
-
                 for move in moves:
                     if move.start_row == row and move.start_col == col:
                         view.blit(
@@ -122,7 +163,7 @@ class BoardProperties:
 
     def draw_notations(self, view, text):
         font = p.font.SysFont('Calibri', 40, True, False)
-        notation = font.render(text, 0, p.Color(221, 190, 107))
+        notation = font.render(text, False, p.Color(221, 190, 107))
         notation_location = p.Rect(
             0,
             0,
@@ -137,7 +178,7 @@ class BoardProperties:
             notation.get_height() /
             2)
         view.blit(notation, notation_location)
-        notation = font.render(text, 0, p.Color('black'))
+        notation = font.render(text, False, p.Color('black'))
         view.blit(notation, notation_location.move(2, 2))
 
     def mode_selection(self, view):
@@ -219,3 +260,4 @@ class BoardProperties:
         self.draw_animation(view, gb, cannons, click_chosen)
         self.draw_animation(view, gb, slides, click_chosen)
         self.draw_pieces(view, gb.board, gb.index_to_col, gb.index_to_row)
+        self.draw_line(view)
